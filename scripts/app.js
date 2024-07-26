@@ -18,8 +18,9 @@ async function render_boxplot_slide_1() {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // Load the data
-    d3.csv("data/state_policy_summary.csv", function(data) {
+    await d3.csv("https://raw.githubusercontent.com/sacheth-sv/narrative_story_project/main/data/state_policy_summary.csv", function(data) {
         // Need to compute the summary statistics
+        console.log(data)
         var summary = d3.nest()
             .key(function(d) {return d.Strict_Label;})
             .rollup(function(d) {
@@ -33,16 +34,30 @@ async function render_boxplot_slide_1() {
                 return {q1: q1, median: median, q3: q3, IQR: IQR, min: min, max: max};
             }).entries(data);
 
+        console.log(summary)
+
         // Y Scale
         var y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
         svg.append("g").call(d3.axisLeft(y));
 
         // X Scale
-        var x = d3.scaleBand().domain(["No Policy", "Some Policy", "Strict Policy"]).range([0, width]).padding(0.4);
+        var x = d3.scaleBand().domain(["Strict", "Moderate", "Lax"]).range([0, width]).padding(0.4);
         svg.append("g").attr("transform", "translate(0," + height + ")").call(d3.axisBottom(x));
 
+        // vertical lines
+        svg.selectAll("vertLines")
+            .data(summary)
+            .enter()
+            .append("line")
+            .attr("x1", function(d) {return x(d.key);})
+            .attr("x2", function(d) {return x(d.key);})
+            .attr("y1", function(d) {return y(d.value.min);})
+            .attr("y2", function(d) {return y(d.value.max);})
+            .attr("stroke", "black")
+            .style("width", 40);
+        
         // Plot the boxes
-        var boxWidth = 100
+        var boxWidth = 250
         svg.selectAll("box")
             .data(summary)
             .enter()
