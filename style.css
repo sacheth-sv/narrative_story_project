@@ -1,0 +1,16 @@
+section {
+    padding-top: 30px;
+}
+
+.nav {
+    border: 1px solid #ccc;
+}
+
+.navi {
+    margin: 10px;
+    width: 100%;
+}
+
+.left-panel {
+    border-right: 1px solid #ccc;
+}
