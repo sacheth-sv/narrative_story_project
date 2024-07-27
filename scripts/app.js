@@ -505,7 +505,25 @@ async function render_table_slide_2(strictness_level) {
 }
 
 async function render_lineplot_slide_3() {
+//https://raw.githubusercontent.com/sacheth-sv/narrative_story_project/main/data/case_counts_cleaned.csv
+    var margin = {top: 10, right: 30, bottom:30, left: 55}
+    var width = 1200 - margin.left - margin.right;
+    var height = 400 - margin.top - margin.bottom;
 
+    var svg = d3.select("#slide_3_lineplot")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Load the data
+    const case_count_dataset = await d3.csv("https://raw.githubusercontent.com/sacheth-sv/narrative_story_project/main/data/case_counts_cleaned.csv");
+    var state_data = d3.nest()
+        .key(function(d) {return d.state;})
+        .entries(case_count_dataset);
+
+    console.log(case_count_dataset);
 }
 
 async function render_table_slide_3() {
