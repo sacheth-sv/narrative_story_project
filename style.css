@@ -11,6 +11,21 @@ section {
     width: 100%;
 }
 
-.left-panel {
-    border-right: 1px solid #ccc;
+@media screen and (min-width: 768px) {
+    .left-panel {
+        border-bottom: 1px solid #ccc;
+        border-right: none;
+    }
+    .right-panel {
+        padding-top: 20px;
+    }
 }
+
+
+@media screen and (min-width: 992px) {
+    .left-panel {
+        border-right: 1px solid #ccc;
+        border-bottom: none;
+    }    
+}
+
