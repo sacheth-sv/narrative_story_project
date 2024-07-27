@@ -143,7 +143,7 @@ async function render_boxplot_slide_1() {
 
 async function render_table_slide_1(strictness_level) {
     await d3.csv("https://raw.githubusercontent.com/sacheth-sv/narrative_story_project/main/data/state_policy_summary.csv", function(data) {
-        var table = d3.select("#slide_1_table").append("table").attr("class", "table table-striped");
+        var table = d3.select("#slide_1_table").html("").append("table").attr("class", "table").append("tbody");
         var usable_data = data.filter(function(d) {return d.Strict_Label == strictness_level;});
         console.log(usable_data);
         // the first row will contain the states seperated by commas
@@ -151,18 +151,35 @@ async function render_table_slide_1(strictness_level) {
         // the third row will contain the average number of mask wearing policies
         // the fourth row will contain the average number of notification policies
         // the fifth row will contain the average infection ratio
-        var states = usable_data.map(function(d) {return d.state;}).join(", ");
+        var states = usable_data.map(function(d) {return d.state_abbr;});
+        if (states.length < 10) {
+            states = states.join(", ");
+        } else {
+            states = states.slice(0, 10).join(", ") + "...";
+        }
         var avg_contact = d3.mean(usable_data.map(function(d) {return d.contact_reduce_num;}));
         var avg_mask = d3.mean(usable_data.map(function(d) {return d.mask_vaccine_num;}));
         var avg_notification = d3.mean(usable_data.map(function(d) {return d.notification_num;}));
         var avg_infection = d3.mean(usable_data.map(function(d) {return d.infection_ratio;}));
 
-        html_text = "<tr><td>States</td><td>" + states + "</td>"
+        html_text = "<tr><td><strong>States</strong></td><td>" + states + "</td>"
+        table.append("tr").html(html_text);
+        html_text = "<tr><td><strong>Average Contact Reduction Policies</strong></td><td>" + d3.format(".2f")(avg_contact) + "</td>"
+        table.append("tr").html(html_text);
+        html_text = "<tr><td><strong>Average Mask Wearing Policies</strong></td><td>" + d3.format(".2f")(avg_mask) + "</td>"
+        table.append("tr").html(html_text);
+        html_text = "<tr><td><strong>Average Notification Policies</strong></td><td>" + d3.format(".2f")(avg_notification) + "</td>"
+        table.append("tr").html(html_text);
+        html_text = "<tr><td><strong>Average Infection Ratio</strong></td><td>" + d3.format(".2f")(avg_infection) + "</td>"
         table.append("tr").html(html_text);
 
-
-
-
+        var p = d3.select("#slide_1_table").append("p");
+        var p_text = "If the number of contact reduction policies is increased by 1"
+        p.text("");
     });
 
+}
+
+async function compute_predicted_infected(strictness_level) {
+    return -.1*strictness_level + .325;
 }
