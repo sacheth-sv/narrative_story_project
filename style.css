@@ -29,3 +29,8 @@ section {
     }    
 }
 
+.infectionLine {
+    fill: none;
+    stroke: #69b3a2;
+    stroke-width: 2px;
+  }
