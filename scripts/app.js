@@ -616,7 +616,7 @@ async function update_lineplot_slide_3(origData, metric) {
     // Create the tooltips
     var Tooltip = d3.select("#slide_3_lineplot")
         .append("div")
-        .style("hidden", true)
+        .style("visibility", "hidden")
         .attr("class", "tooltip")
         .style("opacity", 1)
         .style("background-color", "white")
@@ -628,8 +628,8 @@ async function update_lineplot_slide_3(origData, metric) {
         .style("padding", "5px");
     
     tooltipMouseover = function(d) {
-        Tooltip.style("hidden", false);
-        d3.select(".tooltip").style("stroke", "black").style("hidden", false);
+        Tooltip.style("visibility", "visible");
+        d3.select(".tooltip").style("stroke", "black").style("visibility", "visible");
     }
 
     tooltipMousemove = function(d) {
@@ -649,8 +649,8 @@ async function update_lineplot_slide_3(origData, metric) {
     }
 
     tooltipMouseleave = function(d) {
-        Tooltip.style("hidden", true);
-        d3.select(".tooltip").style("stroke", "none").style("hidden", true);
+        Tooltip.style(("visibility", "hidden"));
+        d3.select(".tooltip").style("stroke", "none").style(("visibility", "hidden"));
     }
 
     // add the points on the line
