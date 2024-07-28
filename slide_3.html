@@ -35,17 +35,21 @@
             <div class="container nav">
                 <div class="navi">
                     <h2>State Wide Pandemic Spread and Fatalities OverTime</h2>
+                    <p>Below is a lineplot showcasing the number of COVID-19 infections and COVID-19 related fatalities overlayed with the occurence of different types of restrictions by state. The dropdowns allow you to select the state and the value you want to see. The table below shows the details of each of the COVID-19 policies including the exact restriction description for each policy. </p>
+                    <p>Within the lineplot, the circles containing "C" indicate contact reduction policies. The circles containing "V" indicate mask/vaccination related policies. The circles containing "N" indicate noficiation policies.</p>
                     <hr>
                     <div class="row">
-                        <div class="col-lg-7 col-md-12 col-sm-12">
-                            <!-- Put the boxplot plots here -->
-                             <select id="stateSelectionDropdown"></select>
-                            <div id="slide_3_lineplot"></div>
-                        </div>
+                        <center><select id="stateSelectionDropdown" style="width:95%; margin:5px; margin-bottom: 25px;"></select></center>
+                        <div id="slide_3_lineplot"></div>
+                        <center><select id="valueSelectionDropdown" style="width:95%; margin:5px; margin-bottom: 25px;">
+                            <option value="cases">Cases</option>
+                            <option value="deaths">Deaths</option>
+                        </select></center>
                     </div>
-                    <div class="row">
-                        <div class="col-lg-5 col-md-12 col-sm-12" style="padding-top: 25px; border-top: 5px #ccc;">
-                            <h3>More information</h3>
+                    <hr>
+                    <div class="row" style="width: 100%; margin: 5px; border-top: 5px #ccc; ">
+                        <div style="width: 100%;">
+                            <h3>State COVID-19 Policies</h3>
                             <div id="slide_3_table">
                                 <p>Please click on one of the boxplots to get additional information!</p>
                             </div>

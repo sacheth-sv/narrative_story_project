@@ -34,3 +34,9 @@ section {
     stroke: #69b3a2;
     stroke-width: 2px;
   }
+
+.fatalityLine {
+    fill: none;
+    stroke: #ff6f61;
+    stroke-width: 2px;
+}

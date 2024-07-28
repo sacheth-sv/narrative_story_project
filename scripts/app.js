@@ -11,6 +11,7 @@ async function slide_2_elements() {
 async function slide_3_elements() {
     // Render the lineplot
     await render_lineplot_slide_3();
+    await render_table_slide_3();
 }
 
 async function render_boxplot_slide_1() {
@@ -345,7 +346,7 @@ async function render_boxplot_slide_2() {
             .attr("height", function(d) {return y(d.value.q1) - y(d.value.q3);})
             .attr("width", boxWidth)
             .attr("stroke", "black")
-            .style("fill", "#69b3a2")
+            .style("fill", "#ff6f61")
             .on("mouseover", function(d) {
                 tooltipMouseover(d);
             })
@@ -356,8 +357,8 @@ async function render_boxplot_slide_2() {
                 tooltipMouseleave(d);
             })
             .on("click", function(d) {
-                svg.selectAll("rect").style("fill", "#69b3a2");
-                d3.select(this).style("fill", "#468a7a");
+                svg.selectAll("rect").style("fill", "#ff6f61");
+                d3.select(this).style("fill", "#d71300");
                 render_table_slide_2(d.key);
             });
 
@@ -499,7 +500,7 @@ async function render_lineplot_slide_3() {
 
         // set the default state to be Washington
         var state_data = data.filter(function(d) {return d.state == "Washington";});
-        update_lineplot_slide_3(state_data);
+        update_lineplot_slide_3(state_data, "rolling_avg_cases");
 
         // set the options in the option button
         d3.select("#stateSelectionDropdown")
@@ -515,16 +516,34 @@ async function render_lineplot_slide_3() {
             d3.select("#slide_3_lineplot").html("");
             var selected_state = d3.select(this).property("value");
             var state_data = data.filter(function(d) {return d.state == selected_state;});
-            update_lineplot_slide_3(state_data);
+            var metric = d3.select("#valueSelectionDropdown").node().value
+            if (metric == "cases") {
+                update_lineplot_slide_3(state_data, "rolling_avg_cases");
+            } else {
+                update_lineplot_slide_3(state_data, "rolling_avg_fatalities");
+            }
+        });
+
+        d3.select("#valueSelectionDropdown").on("change", function() {
+            // clear all elements in the #slide_3_lineplot div
+            d3.select("#slide_3_lineplot").html("");
+            var selected_state = d3.select("#stateSelectionDropdown").node().value;
+            var state_data = data.filter(function(d) {return d.state == selected_state;});
+            var metric = d3.select(this).node().value
+            if (metric == "cases") {
+                update_lineplot_slide_3(state_data, "rolling_avg_cases");
+            } else {
+                update_lineplot_slide_3(state_data, "rolling_avg_fatalities");
+            }
         });
 
     });
 }
 
-async function update_lineplot_slide_3(origData) {
+async function update_lineplot_slide_3(origData, metric) {
     var data = JSON.parse(JSON.stringify(origData));
-    var margin = {top: 10, right: 30, bottom:30, left: 55}
-    var width = 1300 - margin.left - margin.right;
+    var margin = {top: 10, right: 10, bottom:30, left: 70}
+    var width = d3.select(".navi").node().getBoundingClientRect().width - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
     // parse the date
@@ -537,7 +556,7 @@ async function update_lineplot_slide_3(origData) {
     // define the line
     var valueline = d3.line()
         .x(function(d) {return x(d.date);})
-        .y(function(d) {return y(d.rolling_avg_cases);});
+        .y(function(d) {return y(d[metric]);});
 
     // append the svg object to the body of the page
     var svg = d3.select("#slide_3_lineplot")
@@ -549,18 +568,25 @@ async function update_lineplot_slide_3(origData) {
 
     data.forEach(function(d) {
         d.date = parseDate(d.date);
-        d.rolling_avg_cases = +d.rolling_avg_cases;
+        d[metric] = +d[metric];
     });
 
     // scale the range of the data
     x.domain(d3.extent(data, function(d) {return d.date;}));
-    y.domain([0, d3.max(data, function(d) {return d.rolling_avg_cases;})]);
+    y.domain([Math.min(d3.min(data, function(d) {return d[metric];}), 0), d3.max(data, function(d) {return d[metric];})]);
 
     // add the valueline path
-    svg.append("path")
-        .data([data])
-        .attr("class", "infectionLine")
-        .attr("d", valueline);
+    if (metric == "rolling_avg_cases") {
+        svg.append("path")
+            .data([data])
+            .attr("class", "infectionLine")
+            .attr("d", valueline);
+    } else {
+        svg.append("path")
+            .data([data])
+            .attr("class", "fatalityLine")
+            .attr("d", valueline);
+    }
 
     // add the x-axis
     svg.append("g")
@@ -579,7 +605,13 @@ async function update_lineplot_slide_3(origData) {
         .attr("dy", "1em")
         .style("text-anchor", "middle")
         .style("font-size", "15px")
-        .text("New Infections");
+        .text(function() {
+            if (metric == "rolling_avg_cases") {
+                return "New Infections";
+            } else {
+                return "New Fatalities";
+            }
+        });
 
     // Create the tooltips
     var Tooltip = d3.select("#slide_3_lineplot")
@@ -602,7 +634,11 @@ async function update_lineplot_slide_3(origData) {
 
     tooltipMousemove = function(d) {
         date_string = d.date.toLocaleString('default', {month: 'long', day: 'numeric', year: 'numeric'});
-        html_text ="<p><strong>" + date_string + "</strong></p><p>New Infections: " + d.rolling_avg_cases + "</p>";
+        if (metric == "rolling_avg_cases") {
+            html_text ="<p><strong>" + date_string + "</strong></p><p>New Infections: " + d.rolling_avg_cases + "</p>";
+        } else {
+            html_text ="<p><strong>" + date_string + "</strong></p><p>New Fatalities: " + d.rolling_avg_fatalities + "</p>";
+        }
         Tooltip.html(html_text)
             .style("top", (event.pageY) -50 + "px")
             .style("left", (event.pageX) -120 + "px")
@@ -623,9 +659,15 @@ async function update_lineplot_slide_3(origData) {
         .enter()
         .append("circle")
         .attr("cx", function(d) {return x(d.date);})
-        .attr("cy", function(d) {return y(d.rolling_avg_cases);})
-        .attr("r", 2)
-        .style("fill", "#69b3a2")
+        .attr("cy", function(d) {return y(d[metric]);})
+        .attr("r", 2) //"#69b3a2"
+        .style("fill", function() {
+            if (metric == "rolling_avg_cases") {
+                return "#69b3a2";
+            } else {
+                return "#ff6f61";
+            }
+        })
         .on("mouseover", function(d) {
             tooltipMouseover(d);
         })
@@ -682,37 +724,119 @@ async function update_lineplot_slide_3(origData) {
         // Add the policy dates to the lineplot as annotations
         // Create a new date parser with the format of the restriction_date
         var labelParseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
-        const labels = state_policies.map(function(d) {
-            return {
-                dy: 300,
-                dx: x(labelParseDate(d.restriction_date)),
-                note: {label: d.policy_type},
-                subject: {text: d.policy_label},
-                data: {date: labelParseDate(d.restriction_date)}                
-            }
-        })
 
-        console.log(labels);
-
-        window.makeAnnotations = d3.annotation()
-        .annotations(labels)
-        .type(d3.annotationBadge)
-        .accessors({
-            x: function(d) {return d.dx;},
-            y: function(d) {return d.dy;}
-        })
-
+        // add a line from the policy marker to the x-axis
         svg.append("g")
-        .attr("class", "annotation-test")
-        .call(makeAnnotations)
+            .attr("class", "policy_markers")
+            .selectAll("line")
+            .data(state_policies)
+            .enter()
+            .append("line")
+            .attr("x1", function(d) {return x(labelParseDate(d.restriction_date));})
+            .attr("x2", function(d) {return x(labelParseDate(d.restriction_date));})
+            .attr("y1", function(d) {
+                // if the policy_label is N, cy=300, if V, cy=400, if C, cy=500
+                if (d.policy_label == "N") {
+                    return 200;
+                } else if (d.policy_label == "V") {
+                    return 100;
+                } else {
+                    return 50;
+                }
+            })
+            .attr("y2", height)
+            .attr("stroke", "gray")
+            .style("width", 40);
 
+        // Create a circle for each policy date and add a line to the x-axis
+        svg.append("g")
+            .attr("class", "policy_markers")
+            .selectAll("circle")
+            .data(state_policies)
+            .enter()
+            .append("circle")
+            .attr("cx", function(d) {return x(labelParseDate(d.restriction_date));})
+            .attr("cy", function(d) {
+                // if the policy_label is N, cy=300, if V, cy=400, if C, cy=500
+                if (d.policy_label == "N") {
+                    return 200;
+                } else if (d.policy_label == "V") {
+                    return 100;
+                } else {
+                    return 50;
+                }
+            })
+            .attr("r", 10)
+            .style("fill", "white")
+            .style("stroke", "black");
 
-
-
+        // add the text to the policy markers
+        svg.append("g")
+            .attr("class", "policy_markers")
+            .selectAll("text")
+            .data(state_policies)
+            .enter()
+            .append("text")
+            .attr("x", function(d) {return x(labelParseDate(d.restriction_date));})
+            .attr("y", function(d) {
+                // if the policy_label is N, cy=300, if V, cy=400, if C, cy=500
+                if (d.policy_label == "N") {
+                    return 200;
+                } else if (d.policy_label == "V") {
+                    return 100;
+                } else {
+                    return 50;
+                }
+            })
+            .attr("dy", ".35em")
+            .attr("text-anchor", "middle")
+            .text(function(d) {return d.policy_label;})
+            .style("font-size", "15px")
+            .style("fill", "black");
     });
 
 }
 
 async function render_table_slide_3() {
+    d3.csv("https://raw.githubusercontent.com/sacheth-sv/narrative_story_project/main/data/state_policies_cleaned.csv", function(policy_data) {
 
+        // filter the data to only include the state of interest
+        var state_policies = policy_data.filter(function(d) {return d.state == "Washington";});
+
+        // Retain only the following columns: state, Policy Type, restriction_date, and restriction_type
+        state_policies = state_policies.map(function(d) {
+            return {state: d.state, policy_type: d["Policy Type"], restriction_date: d.restriction_date, restriction_type: d.restriction_type, restriction_description: d.restriction_desc};
+        });
+
+        // Keep only the state policies that have a restriction_type of "start"
+        state_policies = state_policies.filter(function(d) {return d.restriction_type == "start";});
+
+        // Sort the state_policies by date
+        state_policies.sort(function(a, b) {
+            return new Date(a.restriction_date) - new Date(b.restriction_date);
+        });
+
+        // Create a table in #slide_3_table div with the following columns: restriction_date, restriction_description, and policy_type
+        var table = d3.select("#slide_3_table").html("").append("table").attr("class", "table");
+        // add the row headers
+        var header = table.append("thead").append("tr");
+        header.append("th").text("Restriction Date").attr("class", "col-lg-2 col-md-2 col-sm-2");
+        header.append("th").text("Restriction Description").attr("class", "col-lg-8 col-md-8 col-sm-8");
+        header.append("th").text("Policy Type").attr("class", "col-lg-2 col-md-2 col-sm-2");
+
+        var tableBody = table.append("tbody");
+        // parse the date in a readable format: day Month, Year
+        var labelParseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");        
+
+        // add each of the rows
+        state_policies.forEach(function(d) {
+            var row = tableBody.append("tr");
+            row.append("td").text(labelParseDate(d.restriction_date).toLocaleString('default', {month: 'long', day: 'numeric', year: 'numeric'})).attr("class", "col-lg-2 col-md-2 col-sm-2");
+            row.append("td").text(d.restriction_description).attr("class", "col-lg-8 col-md-8 col-sm-8");
+            row.append("td").text(d.policy_type).attr("class", "col-lg-2 col-md-2 col-sm-2");
+        });
+
+
+        
+    });
 }
