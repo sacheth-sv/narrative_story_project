@@ -517,7 +517,7 @@ async function render_lineplot_slide_3() {
             var selected_state = d3.select(this).property("value");
             var state_data = data.filter(function(d) {return d.state == selected_state;});
             var metric = d3.select("#valueSelectionDropdown").node().value
-            if (metric == "New Infections") {
+            if (metric == "cases") {
                 update_lineplot_slide_3(state_data, "rolling_avg_cases");
             } else {
                 update_lineplot_slide_3(state_data, "rolling_avg_fatalities");
@@ -530,7 +530,7 @@ async function render_lineplot_slide_3() {
             var selected_state = d3.select("#stateSelectionDropdown").node().value;
             var state_data = data.filter(function(d) {return d.state == selected_state;});
             var metric = d3.select(this).node().value
-            if (metric == "New Infections") {
+            if (metric == "cases") {
                 update_lineplot_slide_3(state_data, "rolling_avg_cases");
             } else {
                 update_lineplot_slide_3(state_data, "rolling_avg_fatalities");
